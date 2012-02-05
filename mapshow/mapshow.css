@@ -12,7 +12,7 @@ body, html {
 
 #nav {
   margin-top:20px;
-  margin-bottom:30px;
+  margin-bottom:15px;
 }
 
 #main {
@@ -20,7 +20,19 @@ body, html {
 }
 
 #map_holder {
-  width:650px;
+  width:1000px;
   height:600px;
 }
 
+#markers {
+  width:1000px;
+  height:10em;
+}
+
+#btnShow {
+  padding:7px;
+  position:relative;
+  margin-top:15px;
+  left:-2px;
+  font-size:100%;
+}
