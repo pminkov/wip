@@ -32,6 +32,10 @@ function startAppWithBounds(opt_bounds) {
 }
 
 function displayMarkers() {
+  var data = $('#markers').val();
+  var coords = data.split(';');
+  $.each(coords, function(index, value) {
+  });
   // 37.755244,-122.462196
   var lat = 37.755244;
   var lng = -122.462196;
