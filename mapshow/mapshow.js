@@ -33,16 +33,20 @@ function startAppWithBounds(opt_bounds) {
 
 function displayMarkers() {
   var data = $('#markers').val();
-  var coords = data.split(';');
+  var coords = data.split(/[; \n\t]/);
+  var bounds = new google.maps.LatLngBounds();
   $.each(coords, function(index, value) {
+    if (value.length > 1) {
+      var c = value.split(',')
+      var position = new google.maps.LatLng(c[0], c[1])
+      var marker = new google.maps.Marker({
+        map: map_,
+        position: position, 
+      });
+      bounds.extend(position);
+    }
   });
-  // 37.755244,-122.462196
-  var lat = 37.755244;
-  var lng = -122.462196;
-  var marker = new google.maps.Marker({
-    map: map_,
-    position: new google.maps.LatLng(lat, lng)
-  });
+  map_.fitBounds(bounds);
 }
 
 
