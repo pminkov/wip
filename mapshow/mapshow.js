@@ -43,6 +43,12 @@ function displayMarkers() {
         map: map_,
         position: position, 
       });
+      if (c.length >= 3) {
+        google.maps.event.addListener(marker, 'click', function() {
+          infowindow_.setContent(c[2]);
+          infowindow_.open(map_, marker);
+        })
+      }
       bounds.extend(position);
     }
   });
