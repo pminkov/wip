@@ -37,8 +37,11 @@ def mean_n_flipcoins(n):
 
   return mean
 
-if __name__ == '__main__':
+def binom_prob(n, k, p):
+  """Probability of selecting k out of n where each selection is with probability p"""
+  return comb(n, k) * (p**k) * ((1-p)**(n-k))
 
+def simulate_flips():
   s = []
 
   for i in range(0, 10000):
@@ -54,6 +57,12 @@ if __name__ == '__main__':
     s.append(x)
 
   print (var(s))
+
+if __name__ == '__main__':
+  for i in range(0, 15):
+    print("%d %.5f" % ((i+1), binom_prob(15, (i+1), 0.9)))
+
+
 
 
 
