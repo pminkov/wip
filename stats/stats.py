@@ -58,9 +58,44 @@ def simulate_flips():
 
   print (var(s))
 
+# Mean and confidence interval at 95% for an array of numbers "x"
+def ci(x):
+  mean_value = mean(x)
+  ci = 1.96 * math.sqrt( var(x) / len(x) )
+  return (mean_value, ci)
+
+def verify_ci():
+  mu = 16
+  sigma = 3
+
+  N = 250
+  S = 1000 
+
+  ci = 1.96 * math.sqrt(sigma * sigma / float(N))
+
+  print "Mean =", mu
+  print "Standard deviation =", sigma
+  print "Size of sample =", N
+  print "Number of times we sample =", S
+  print "CI =", ci
+
+
+  in_ci = 0
+
+  for i in range(0, S):
+    x = [random.gauss(mu, sigma) for j in range(0, N)]
+    mv = mean(x)
+    if i <= 10:
+      print (mv)
+    if (mu - ci <= mv) and (mv <= mu + ci):
+      in_ci += 1
+
+  # We expect 95%
+  print "Percent of times the mean is in the 95% confidence interval: ", (100. * in_ci / float(S))
+
 if __name__ == '__main__':
-  for i in range(0, 15):
-    print("%d %.5f" % ((i+1), binom_prob(15, (i+1), 0.9)))
+  verify_ci()
+
 
 
 
