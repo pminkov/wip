@@ -109,7 +109,6 @@ def AB_test(n_observations, conversion_rate_1, conversion_rate_2):
 
   return not in_ci(conversion_rate_1, ci, conversion_rate_2)
 
-
 def verify_ci():
   mu = 16
   sigma = 3
@@ -140,8 +139,30 @@ def verify_ci():
   print "Percent of times the mean is in the 95% confidence interval: ", \
       (100. * in_ci / float(S))
 
+def correlation(x, y):
+  assert(len(x) == len(y))
+
+  mx = mean(x)
+  my = mean(y)
+
+  cov = 0.0
+  vx = 0.0
+  vy = 0.0
+
+  print (mx, my)
+
+  for i in range(0, len(x)):
+    cov += (x[i] - mx) * (y[i] - my)
+    vx += (x[i] - mx) ** 2
+    vy += (y[i] - my) ** 2
+
+  print cov, vx, vy
+
+  return cov / math.sqrt(vx * vy)
+
 if __name__ == '__main__':
-  print(AB_test(10000000, 1, 1.01))
+  x = correlation([3, 4, 5], [8, 3, 7])
+  print x
 
 
 
