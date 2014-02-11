@@ -187,6 +187,12 @@ def bivariate_from_sample(x, y):
 
   return BivariateGaussian(mu, sigma)
 
+def xy_mean(x, y):
+  assert(len(x) == len(y))
+  s = sum([a * b for a, b in zip(x, y)])
+  s = s / float(len(x))
+  return s
+
 def covariance(x, y):
   assert(len(x) == len(y))
 
