@@ -211,7 +211,10 @@ def test_bivariate():
   bg.debug_print()
 
 if __name__ == '__main__':
-  test_bivariate()
+  ci = ci_from_stddev(100, 0.5)
+
+  print(1.05 - ci, 1.05 + ci)
+
   
 
 
