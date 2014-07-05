@@ -187,6 +187,12 @@ def bivariate_from_sample(x, y):
 
   return BivariateGaussian(mu, sigma)
 
+def xy_mean(x, y):
+  assert(len(x) == len(y))
+  s = sum([a * b for a, b in zip(x, y)])
+  s = s / float(len(x))
+  return s
+
 def covariance(x, y):
   assert(len(x) == len(y))
 
@@ -211,7 +217,10 @@ def test_bivariate():
   bg.debug_print()
 
 if __name__ == '__main__':
-  test_bivariate()
+  ci = ci_from_stddev(100, 0.5)
+
+  print(1.05 - ci, 1.05 + ci)
+
   
 
 
