@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <style>
       body {
         background-color: black;
@@ -24,11 +25,18 @@
       .selected {
         background-color: #404040;
       }
+      #title {
+        font-size: 200%;
+        padding-bottom:1em;
+      }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hogan.js/3.0.2/hogan.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-rc1/jquery.min.js"></script>
   </head>
   <body>
+    <div id="title">
+      Под Прикритие, Сезон 5, Епизод 1 - Забавни моменти.
+    </div>
     <!-- 1. The <iframe> (and video player) will replace this <div> tag. -->
     <div>
       <div id="player"></div>
@@ -113,11 +121,10 @@
 
       var playlist = new Playlist();
 
-      playlist.addVideo('EP1EukEsURM', '12:11', '12:26');
-      playlist.addVideo('EP1EukEsURM', '22:30', '22:47');
-      playlist.addVideo('EP1EukEsURM', '22:59', '23:16'); 
-      playlist.addVideo('EP1EukEsURM', '32:30', '32:50');
-      playlist.addVideo('EP1EukEsURM', '33:47', '34:00');
+      playlist.addVideo('EP1EukEsURM', '12:11', '12:28');
+      playlist.addVideo('EP1EukEsURM', '22:30', '22:48');
+      playlist.addVideo('EP1EukEsURM', '32:30', '32:53');
+      playlist.addVideo('EP1EukEsURM', '33:47', '34:02');
       playlist.addVideo('EP1EukEsURM', '34:30', '35:17');
       playlist.addVideo('EP1EukEsURM', '44:50', '47:00');
 
