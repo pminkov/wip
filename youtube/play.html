@@ -121,14 +121,12 @@
 
       var playlist = new Playlist();
 
-      playlist.addVideo('EP1EukEsURM', '12:11', '12:28');
+      playlist.addVideo('EP1EukEsURM', '12:11', '12:27');
       playlist.addVideo('EP1EukEsURM', '22:30', '22:48');
       playlist.addVideo('EP1EukEsURM', '32:30', '32:53');
       playlist.addVideo('EP1EukEsURM', '33:47', '34:02');
       playlist.addVideo('EP1EukEsURM', '34:30', '35:17');
       playlist.addVideo('EP1EukEsURM', '44:50', '47:00');
-
-      setupPlayer();
 
       // 3. This function creates an <iframe> (and YouTube player)
       //    after the API code downloads.
@@ -178,11 +176,9 @@
           }
         }
       }
-      function stopVideo() {
-        player.stopVideo();
-      }
 
       $(document).ready(function() {
+        setupPlayer();
         playlist.render();
       });
     </script>
