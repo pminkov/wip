@@ -1,9 +1,39 @@
 <!DOCTYPE html>
 <html>
-<!-- https://www.youtube.com/watch?v=pfyVEjAf7CM -->
+  <head>
+    <style>
+      body {
+        background-color: black;
+        padding:2em;
+        color: white;
+      }
+      #player {
+        border: 2px solid #404040;
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+      #playlist {
+        padding-left:1em;
+      }
+      #player, #playlist {
+        float : left;
+      }
+      .video {
+        padding: 2px 20px 2px 20px;
+      }
+      .selected {
+        background-color: #404040;
+      }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hogan.js/3.0.2/hogan.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-rc1/jquery.min.js"></script>
+  </head>
   <body>
     <!-- 1. The <iframe> (and video player) will replace this <div> tag. -->
-    <div id="player"></div>
+    <div>
+      <div id="player"></div>
+      <div id="playlist"></div>
+    </div>
 
     <script>
       function setupPlayer() {
@@ -18,13 +48,34 @@
       function Playlist() {
         self.videos = [];
         self.currentVideoIndex = 0;
+
+        var template_text = `
+          {{#videos}}
+            <div class="video" id='video-{{index}}'>{{index}}: {{start}} - {{end}}</div>
+          {{/videos}}
+        `;
+
+        self.template = Hogan.compile(template_text);
+      }
+
+      Playlist.prototype.toSeconds = function(time) {
+        var sep = time.indexOf(':');
+        var minutes = parseInt(time.substr(0, sep));
+        var seconds = parseInt(time.substr(sep + 1));
+        return minutes * 60 + seconds;
       }
 
       Playlist.prototype.addVideo = function(id, s, e) {
-        self.videos.push({
+        var apiParams = {
           videoId: id,
-          startSeconds: s,
-          endSeconds: e
+          startSeconds: this.toSeconds(s),
+          endSeconds: this.toSeconds(e) 
+        };
+        
+        self.videos.push({
+          'apiParams': apiParams,
+          'start': s,
+          'end': e,
         });
       }
 
@@ -32,18 +83,43 @@
         return self.currentVideoIndex >= self.videos.length;
       }
 
+      Playlist.prototype.highlightCurrent = function() {
+        console.log('highlighting ' + self.currentVideoIndex);
+        $('.video').removeClass('selected');
+        $('#video-' + self.currentVideoIndex).addClass('selected');
+      }
+
       Playlist.prototype.currentVideo = function() {
-        return self.videos[self.currentVideoIndex];
+        return self.videos[self.currentVideoIndex].apiParams;
       }
 
       Playlist.prototype.next = function() {
         self.currentVideoIndex += 1;
       }
 
+      Playlist.prototype.render = function() {
+        var rvideos = [];
+        for (var i = 0; i < self.videos.length; i++) {
+          var video = self.videos[i];
+          rvideos.push({
+            'index': i,
+            'start': video.start,
+            'end': video.end,
+          });
+        }
+
+        $('#playlist').html(self.template.render({'videos': rvideos}));
+      }
 
       var playlist = new Playlist();
-      playlist.addVideo('pfyVEjAf7CM', 300, 303);
-      playlist.addVideo('VX6ij8BIPtc', 40, 44);
+
+      playlist.addVideo('EP1EukEsURM', '12:11', '12:26');
+      playlist.addVideo('EP1EukEsURM', '22:30', '22:47');
+      playlist.addVideo('EP1EukEsURM', '22:59', '23:16'); 
+      playlist.addVideo('EP1EukEsURM', '32:30', '32:50');
+      playlist.addVideo('EP1EukEsURM', '33:47', '34:00');
+      playlist.addVideo('EP1EukEsURM', '34:30', '35:17');
+      playlist.addVideo('EP1EukEsURM', '44:50', '47:00');
 
       setupPlayer();
 
@@ -65,22 +141,43 @@
       function onPlayerReady(event) {
         var p = event.target;
         p.loadVideoById(playlist.currentVideo());
-        p.playVideo();
+
+        playlist.highlightCurrent();
+        playlist.next();
       }
 
+      var lastEnd = new Date();
+
       function onPlayerStateChange(event) {
-        console.log(event);
         if (event.data == YT.PlayerState.ENDED) {
+          var curTime = new Date();
+          console.log('Video ended ' + curTime);
+
+          // Something's going on, I'm getting two 'ENDED' events sometimes.
+          if (curTime - lastEnd < 2000) {
+            console.log('Fake end');
+            return;
+          }
+
+          lastEnd = curTime;
+
+
+          console.log(player.getDuration());
           if (!playlist.isDone()) {
             player.loadVideoById(playlist.currentVideo());
+
+            playlist.highlightCurrent();
             playlist.next();
-            player.playVideo();
           }
         }
       }
       function stopVideo() {
         player.stopVideo();
       }
+
+      $(document).ready(function() {
+        playlist.render();
+      });
     </script>
   </body>
 </html>
