@@ -58,6 +58,7 @@ int main(int argc, char *argv[]) {
     fptr = fopen("numbers.bin", "r+");
     scans++;
 
+    int current_swaps = 0;
     int last;
     for (int i = 0; i < N; i++) {
       int cur = read_int(fptr);
@@ -71,10 +72,13 @@ int main(int argc, char *argv[]) {
         assert(cpos == ftell(fptr));
         swapped = 1;
         swaps++;
+        current_swaps++;
       } else {
         last = cur;
       }
     }
+
+    printf("[%d scans] %d swaps executed\n", scans, current_swaps);
 
     fclose(fptr);
   } while (swapped);
