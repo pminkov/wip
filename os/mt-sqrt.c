@@ -78,7 +78,12 @@ int main(int argc, char *argv[]) {
     pthread_join(threads[i], (void**) &partial_sum);
     sum += *partial_sum;
     sum = sum % 20;
+
+    free(partial_sum);
   }
+
+  free(threads);
+  free(args);
   
   printf("sum = %d\n", sum);
 } 
