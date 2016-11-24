@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <assert.h>
 #include <sched.h>
+#include <stdio.h>
 
 void
 Pthread_mutex_lock(pthread_mutex_t *m)
@@ -33,5 +34,19 @@ Pthread_join(pthread_t thread, void **value_ptr)
     int rc = pthread_join(thread, value_ptr);
     assert(rc == 0);
 }
+
+void
+Pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex) {
+  int rc = pthread_cond_wait(cond, mutex);
+  assert(rc == 0);
+}
+
+
+void
+Pthread_cond_signal(pthread_cond_t *cond) {
+  int rc = pthread_cond_signal(cond);
+  assert(rc == 0);
+}
+
 
 #endif // __MYTHREADS_h__
