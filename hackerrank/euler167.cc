@@ -13,12 +13,24 @@ int n;
 LL k;
 
 vector<int> seq;
-int cc[30* MIL];
 
+/*
+  This can be small, because for every number we want to check,
+  we only need to check if num-2 and num-last_even exists.
+*/ 
+int count_ways[100 * MIL];
+
+/*
+  The last even number in the sequence.
+*/
 int get_last_even(int n) {
   return 2 + 2 * (2 * n + 1);
 }
 
+
+/*
+  Proove a few hypothesis about the sequence.
+*/
 void property_proof(int n) {
   vector<int> s;
   s.push_back(2);
@@ -61,32 +73,45 @@ void property_proof(int n) {
   assert(last_even == get_last_even(n));
 }
 
-void manual_push(int num) {
+
+void add_to_seq(int num) {
   if (num > get_last_even(n)) {
-    cc[ num + 2 ]++;
-    cc[ num + get_last_even(n) ]++;
+    // Numbers after the last even number can only be produced
+    // by summing with 2 or the last even number.
+    count_ways[ num + 2 ]++;
+    count_ways[ num + get_last_even(n) ]++;
   } else {
     for (int i = 0; i < seq.size(); i++) {
-      cc[ num + seq[i] ]++;
+      count_ways[ num + seq[i] ]++;
     }
   }
 
   seq.push_back(num);
 }
 
-int next_num() {
+
+int gen_next_num() {
   int step = 1;
   if (seq.back() > get_last_even(n)) step = 2;
   for (int i = seq.back() + step; ; i += step) {
-    if (cc[i] == 1) {
-      manual_push(i);
+    if (count_ways[i] == 1) {
+      add_to_seq(i);
       return i;
     }
   }
 }
 
+
+/*
+  How many numbers to generate before trying to find
+  a pattern in the sequence.
+*/
 LL SIM = 5 * MIL;
 
+
+/*
+  Check if two subsequences, both of length "len" are the same.
+*/
 bool equal_subseq(int s1, int s2, int len) {
   for (int i = 0; i < len; i++) {
     int n1 = seq[s1 + i] - seq[s1 + i - 1];
@@ -98,6 +123,7 @@ bool equal_subseq(int s1, int s2, int len) {
   return true;
 }
 
+
 int main() {
   /*cin >> n;
   property_proof(n);
@@ -107,11 +133,11 @@ int main() {
 
   //k = 100 * MIL;
 
-  manual_push(2);
-  manual_push(2*n + 1);
+  add_to_seq(2);
+  add_to_seq(2*n + 1);
 
   for (int i = 3; i <= min(k, SIM); i++) {
-    next_num();
+    gen_next_num();
   }
 
   if (k <= SIM) {
@@ -125,7 +151,8 @@ int main() {
       int pstart = seq.size() - 2 * pattern_len;
 
       if (equal_subseq(cstart, pstart, pattern_len)) {
-        // Find where the pattern starts.
+        // Find where the pattern starts. This is not necessary for the solution,
+        // but I was curious to know it.
         while (pstart - pattern_len > 0) {
           if (equal_subseq(cstart, pstart - pattern_len, pattern_len)) {
             pstart = pstart - pattern_len;
