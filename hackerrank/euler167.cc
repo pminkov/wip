@@ -5,19 +5,15 @@
 #include <set>
 using namespace std;
 
-//#define DEBUG 1
 typedef long long LL;
 
 const int MIL = 1000000;
 
-LL n, k;
+int n;
+LL k;
 
 vector<int> seq;
 int cc[30* MIL];
-
-const int WN = 50000;
-
-vector<pair<int, int> > ways[WN];
 
 int get_last_even(int n) {
   return 2 + 2 * (2 * n + 1);
@@ -29,6 +25,8 @@ void property_proof(int n) {
   s.push_back(2 * n + 1);
 
   int last_even = 2;
+  int max_ways = 0;
+  int total_even = 1;
   for (int i = s.back() + 1; i <= 1000; i++) {
     int ways = 0;
     
@@ -41,32 +39,38 @@ void property_proof(int n) {
     }
 
     if (ways == 1) {
-      if (i % 2 == 0) last_even = i;
+      if (i % 2 == 0) {
+        total_even++;
+        last_even = i;
+      }
+
 
       s.push_back(i);
+    }
+
+    if (i % 2 == 1) {
+      max_ways = max(ways, max_ways);
     }
   }
 
   cout << "N=" << n << endl;
   cout << "Last even=" << last_even << endl;
+  cout << "Max ways for odd numbers=" << max_ways << endl;
+  cout << "Total number of even numbers=" << total_even << endl;
 
   assert(last_even == get_last_even(n));
 }
 
 void manual_push(int num) {
-  for (int i = 0; i < seq.size(); i++) {
-    if (seq[i] > get_last_even(n)) break;
-
-    cc[ num + seq[i] ]++;
-
-    #ifdef DEBUG
-    int s = num + seq[i];
-
-    if (s % 2 == 1 && s < WN) {
-      ways[s].push_back(make_pair(num, seq[i]));
+  if (num > get_last_even(n)) {
+    cc[ num + 2 ]++;
+    cc[ num + get_last_even(n) ]++;
+  } else {
+    for (int i = 0; i < seq.size(); i++) {
+      cc[ num + seq[i] ]++;
     }
-    #endif
   }
+
   seq.push_back(num);
 }
 
@@ -95,71 +99,28 @@ bool equal_subseq(int s1, int s2, int len) {
 }
 
 int main() {
-/*
-  cin >> n;
+  /*cin >> n;
   property_proof(n);
   return 0;
   */
   cin >> n >> k;
-
-
 
   //k = 100 * MIL;
 
   manual_push(2);
   manual_push(2*n + 1);
 
-  int diff = 0;
-  int prev = seq.back();
-  int rr = 0;
   for (int i = 3; i <= min(k, SIM); i++) {
-    rr = next_num();
-    diff = rr - prev; 
-    prev = rr;
-    //cout << "[" << i << "] " << diff << " " << rr << endl;
-    #ifdef DEBUG
-    if (i % 1000 == 0)  cout  << i << " " << rr << endl;
-    #endif
+    next_num();
   }
-
-  
-  #ifdef DEBUG
-  vector<int> counts(1000, 0);
-
-  for (int i = 0; i < WN; i++) {
-    cout <<  i << " ways:" << cc[i] << " " ;
-    for (int j = 0; j < ways[i].size();j++) {
-      cout << "(" << ways[i][j].first << ", " << ways[i][j].second << ") ";
-
-      if (cc[i] == 1) {
-        assert(ways[i][j].second < 1000);
-        counts[ ways[i][j].second ]++;
-      }
-    }
-
-    cout << endl;
-  }
-
-  cout << "Counts:\n";
-  for (int i = 0; i < 1000; i++) {
-    if (counts[i] > 0) {
-      cout << i << " " << counts[i] << endl;
-    }
-  }
-  cout << "----\n";
-
-  #endif
 
   if (k <= SIM) {
-    cout << rr << endl;
+    cout << seq.back() << endl;
   } else {
     assert(seq.size() == SIM);
 
     // Find pattern.
     for (int pattern_len = 10; pattern_len <= SIM / 2; pattern_len++) {
-      // seq.size = 50
-      // 48 => 48, 49.
-      // 46 => 46, 47.
       int cstart = seq.size() - pattern_len;
       int pstart = seq.size() - 2 * pattern_len;
 
