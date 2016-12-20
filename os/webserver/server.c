@@ -1,3 +1,9 @@
+/*
+
+Based on this:
+http://pages.cs.wisc.edu/~dusseau/Classes/CS537-F07/Projects/P2/p2.html
+
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,12 +35,16 @@ void http_get_reply(int sockfd) {
   char length_str[100];
   sprintf(length_str, "%d", (int)strlen(content));
 
+  char *content_length_str = concat("Content-Length: ", length_str);
+
   writeln_to_sock(sockfd, "HTTP/1.1 200 OK");
   writeln_to_sock(sockfd, "Server: PetkoWS/1.0 (MacOS)");
   writeln_to_sock(sockfd, "Content-Type: text/html");
-  writeln_to_sock(sockfd, concat("Content-Length: ", length_str));
+  writeln_to_sock(sockfd, content_length_str);
   writeln_to_sock(sockfd, "");
   writeln_to_sock(sockfd, content);
+
+  free(content_length_str);
 }
 
 int main() {
