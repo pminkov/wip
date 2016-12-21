@@ -4,13 +4,16 @@ Based on this:
 http://pages.cs.wisc.edu/~dusseau/Classes/CS537-F07/Projects/P2/p2.html
 
 */
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <sys/types.h> 
+#include <pthread.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
+#include <sys/types.h> 
+#include <unistd.h>
+
+#include "threads.h"
 
 void error(char *message) {
   perror(message);
@@ -45,7 +48,45 @@ void http_get_reply(int sockfd) {
   writeln_to_sock(sockfd, content);
 
   free(content_length_str);
+
+  //printf("Sleeping...\n");
+  //sleep(3);
 }
+
+char *read_text_from_socket(int sockfd) {
+  char *buffer = malloc(1024);
+
+  int n = read(sockfd, buffer, 1023);
+  if (n < 0) error("Error reading from socket");
+  buffer[n] = '\0';
+
+  printf("From socket: %s\n\n", buffer);
+
+  return buffer;
+}
+
+
+void *handle_socket_thread(void* sockfd_arg) {
+  int sockfd = *((int *)sockfd_arg);
+
+  printf("Handling socket: %d\n", sockfd);
+  
+  char *text = read_text_from_socket(sockfd);
+  free(text);
+
+  http_get_reply(sockfd);
+
+  close(sockfd);
+  return NULL;
+}
+
+
+void handle_socket(int sockfd) {
+  pthread_t thread;
+
+  Pthread_create(&thread, NULL, handle_socket_thread, &sockfd);
+}
+
 
 int main() {
   int sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -80,14 +121,9 @@ int main() {
   while (1) {
     int newsockfd = accept(sockfd, (struct sockaddr *) &client_addr, (socklen_t *) &cli_len);
     if (newsockfd < 0) error("Error on accept");
+    printf("New socket: %d\n", newsockfd);
+    handle_socket(newsockfd);
 
-    char buffer[256];
-    bzero(buffer, 256);
-    int n = read(newsockfd, buffer, 255);
-    if (n < 0) error("Error reading from socket");
-
-    http_get_reply(newsockfd);
-    close(newsockfd);
   }
 
   close(sockfd);
