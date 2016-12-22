@@ -7,6 +7,18 @@
 #include <stdio.h>
 
 void
+Pthread_cond_init(pthread_cond_t *c) {
+  int rc = pthread_cond_init(c, NULL);
+  assert(rc == 0);
+}
+
+void
+Pthread_mutex_init(pthread_mutex_t *m) {
+  int rc = pthread_mutex_init(m, NULL);
+  assert(rc == 0);
+}
+
+void
 Pthread_mutex_lock(pthread_mutex_t *m)
 {
     int rc = pthread_mutex_lock(m);
@@ -38,6 +50,12 @@ Pthread_join(pthread_t thread, void **value_ptr)
 void
 Pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex) {
   int rc = pthread_cond_wait(cond, mutex);
+  assert(rc == 0);
+}
+
+void
+Pthread_detach(pthread_t thread) {
+  int rc = pthread_detach(thread);
   assert(rc == 0);
 }
 
