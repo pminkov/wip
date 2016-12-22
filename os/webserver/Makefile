@@ -8,7 +8,7 @@ DEPS = threads.h threadpool.h
 	gcc -c -o $@ $<
 
 
-OBJ_S = server.o
+OBJ_S = server.o threadpool.o
 server: $(OBJ_S)
 	gcc -o $@ $^
 

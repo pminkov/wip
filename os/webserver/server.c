@@ -13,7 +13,7 @@ http://pages.cs.wisc.edu/~dusseau/Classes/CS537-F07/Projects/P2/p2.html
 #include <sys/types.h> 
 #include <unistd.h>
 
-#include "threads.h"
+#include "threadpool.h"
 
 void error(char *message) {
   perror(message);
@@ -77,16 +77,10 @@ void *handle_socket_thread(void* sockfd_arg) {
   http_get_reply(sockfd);
 
   close(sockfd);
+  free(sockfd_arg);
+
   return NULL;
 }
-
-
-void handle_socket(int sockfd) {
-  pthread_t thread;
-
-  Pthread_create(&thread, NULL, handle_socket_thread, &sockfd);
-}
-
 
 int main() {
   int sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -118,12 +112,17 @@ int main() {
   struct sockaddr_in client_addr;
   int cli_len = sizeof(client_addr);
 
+  struct thread_pool pool;
+  init_thread_pool(&pool);
+
   while (1) {
     int newsockfd = accept(sockfd, (struct sockaddr *) &client_addr, (socklen_t *) &cli_len);
     if (newsockfd < 0) error("Error on accept");
     printf("New socket: %d\n", newsockfd);
-    handle_socket(newsockfd);
 
+    int *arg = malloc(sizeof(int));
+    *arg = newsockfd;
+    queue_work_item(&pool, handle_socket_thread, arg);
   }
 
   close(sockfd);
