@@ -7,7 +7,7 @@ using namespace std;
 
 typedef pair<int, int> LexPair;
 
-//#define DEBUG
+#define DEBUG
 
 #ifdef DEBUG
   #define DD(x) x;
@@ -30,14 +30,77 @@ public:
   }
 
   /*
-  Suffix array is built with algorithm that sorts 1-grams, 2-grams, 4-grams, etc.
+  Suffix array is built with an algorithm that assigns lexicographic order value to 
+  1-grams, 2-grams, 4-grams, etc.
+
+  So, first we assign that to 1-grams, which are basically the values of the letters. 
+  Example:
+
+  b a n a n a
+  2 1 3 1 3 1
+
+  We then create 2-grams.
+
+  ba (2,1)
+  an (1,3)
+  na (3,1)
+  an (1,3)
+  na (3,1)
+  a_ (1,0)
+
+  The order is:
+  ba 3 
+  an 2
+  na 4
+  an 2
+  na 4 
+  a_ 1
+
+  Now, we want to produce lexicographic order values for 4-grams.
+  Each 4-gram is made of two 2-grams and we know their order. So no need to compare 4 characters.
+  So for "ba", we'll combine with "na" - 3 and 4.
+
+  bana (3,4)
+  anan (2,2)
+  nana (4,4)
+  ana_ (2,1)
+  na__ (4,0)
+  a___ (1,0)
+
+  And the order is:
+  bana 4
+  anan 3
+  nana 6
+  ana_ 2
+  na__ 5
+  a___ 1
+
+  And one last one for 8-grams.
+
+  banana__ (4,5)
+  anana___ (3,1)
+  nana____ (6,0)
+  ana_____ (2,0)
+  na______ (5,0)
+  a_______ (1,0)
+
+  And the order is:
+  banana 4
+  anana  3 
+  nana   6
+  ana    2
+  na     5
+  a      1
+
+  And that's it. We can use this array to produce our suffix array.
+
+
 
   Described here:
     https://www.cs.helsinki.fi/u/tpkarkka/opetus/11s/spa/lecture10.pdf
 
   And here:
     http://stackoverflow.com/questions/17761704/suffix-array-algorithm
-
   */
   void build() {
     assert(sa.size() == 0);
@@ -75,7 +138,7 @@ public:
   We use this algorithm:
     https://www.cs.helsinki.fi/u/tpkarkka/opetus/11s/spa/lecture10.pdf
 
-  Also explained here:
+  A similar version is explained here:
     http://stackoverflow.com/questions/26428636/how-does-this-code-for-obtaining-lcp-from-a-suffix-array-work
   */
   void compute_lcp() {
@@ -105,6 +168,9 @@ public:
     // lcp[k] is the LCP of S[sa[k]:] and S[sa[k - 1]:].
   }
 
+  /*
+  One application of suffix arrays: finding the nubmber of distinct substrings of a string.
+  */
   int distinct_substrings() {
     int ans = N - sa[0];
 
