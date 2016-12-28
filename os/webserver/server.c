@@ -14,6 +14,12 @@ http://pages.cs.wisc.edu/~dusseau/Classes/CS537-F07/Projects/P2/p2.html
 #include <unistd.h>
 
 #include "threadpool.h"
+#include "string_util.h"
+
+const char* GET = "GET";
+const char* CGI_BIN_PATH = "/cgi-bin/";
+
+const int MAX_PATH_LEN = 80;
 
 void error(char *message) {
   perror(message);
@@ -32,8 +38,27 @@ char *concat(char *s1, char *s2) {
   return res;
 }
 
-void http_get_reply(int sockfd) {
-  char *content = "<html><body><h1>PetkoWS</h1></body></html>\r\n";
+void http_404_reply(int sockfd) {
+  char *content = "<html><body><h1>Not found</h1></body></html>\r\n";
+
+  char length_str[100];
+  sprintf(length_str, "%d", (int)strlen(content));
+
+  char *content_length_str = concat("Content-Length: ", length_str);
+
+  writeln_to_sock(sockfd, "HTTP/1.1 404 Not Found");
+  writeln_to_sock(sockfd, "Server: PetkoWS/1.0 (MacOS)");
+  writeln_to_sock(sockfd, "Content-Type: text/html");
+  writeln_to_sock(sockfd, content_length_str);
+  writeln_to_sock(sockfd, "");
+  writeln_to_sock(sockfd, content);
+
+  free(content_length_str);
+}
+
+void http_get_reply(int sockfd, char *path) {
+  char content[100];
+  sprintf(content, "<html><body><h1>PetkoWS [%s] </h1></body></html>\r\n", path);
 
   char length_str[100];
   sprintf(length_str, "%d", (int)strlen(content));
@@ -65,6 +90,21 @@ char *read_text_from_socket(int sockfd) {
   return buffer;
 }
 
+int is_get(char *text) {
+  return starts_with(text, GET);
+}
+
+char *get_path(char *text) {
+  int beg_pos = strlen(GET) + 1;
+  char *end_of_path = strchr(text + beg_pos, ' ');
+  int end_pos = end_of_path - text;
+  // TODO: Overflow possible. Fix.
+  char *path = malloc(MAX_PATH_LEN);
+
+  substr(text, beg_pos, end_pos - beg_pos, path);
+
+  return path;
+}
 
 void *handle_socket_thread(void* sockfd_arg) {
   int sockfd = *((int *)sockfd_arg);
@@ -72,10 +112,18 @@ void *handle_socket_thread(void* sockfd_arg) {
   printf("Handling socket: %d\n", sockfd);
   
   char *text = read_text_from_socket(sockfd);
+  char *path = NULL;
+
+  if (is_get(text)) {
+    path = get_path(text);
+    printf("PATH=[%s]\n", path);
+    http_get_reply(sockfd, path);
+  } else {
+    http_404_reply(sockfd);
+  }
+
   free(text);
-
-  http_get_reply(sockfd);
-
+  free(path);
   close(sockfd);
   free(sockfd_arg);
 
