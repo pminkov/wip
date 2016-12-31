@@ -7,11 +7,11 @@ int starts_with(char *s, const char *with) {
   return strncmp(s, with, strlen(with)) == 0;
 }
 
-int ends_with(char *s, const char *with) {
+int ends_with(const char *s, const char *with) {
   int len_s = strlen(s);
   int len_with = strlen(with);
 
-  if (len_s <= len_with) {
+  if (len_with <= len_s) {
     return strncmp(s + len_s - len_with, with, len_with) == 0;
   } else {
     return 0;
@@ -42,6 +42,21 @@ int ends_with_extension(const char *inp) {
   }
 
   return 0;
+}
+
+char *concat(const char *s1, const char *s2) {
+  char *r = malloc(strlen(s1) + strlen(s2) + 1);
+  strcpy(r, s1);
+  strcat(r, s2);
+  return r;
+}
+
+char *concat3(const char *s1, const char *s2, const char *s3) {
+  char *r = malloc(strlen(s1) + strlen(s2) + strlen(s3) + 1);
+  strcpy(r, s1);
+  strcat(r, s2);
+  strcat(r, s3);
+  return r;
 }
 
 #endif

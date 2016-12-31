@@ -25,6 +25,8 @@ const char* CGI_BIN_PATH = "/cgi-bin/";
 const int MAX_PATH_LEN = 80;
 const int MAX_CWD = 100;
 
+const int MAX_QUERY = 256;
+
 void error(char *message) {
   perror(message);
   exit(1);
@@ -33,13 +35,6 @@ void error(char *message) {
 void writeln_to_sock(int sockfd, const char *message) {
   write(sockfd, message, strlen(message));
   write(sockfd, "\r\n", 2);
-}
-
-char *concat(char *s1, char *s2) {
-  char *res = malloc(strlen(s1) + strlen(s2) + 1);
-  strcpy(res, s1);
-  strcat(res, s2);
-  return res;
 }
 
 void http_404_reply(int sockfd) {
@@ -132,15 +127,59 @@ char *read_from_bin(FILE *fpipe) {
   // TODO(petko): Test with feof, ferror?
 
   buf[index] = '\0';
-  printf("BUF=%s\n", buf);
-
   return buf;
 }
 
-void run_cgi(int sockfd, const char *curdir, const char *cgipath) {
-  char* fullpath = malloc(strlen(curdir) + strlen(cgipath) + 1);
-  strcpy(fullpath, curdir);
-  strcat(fullpath, cgipath);
+struct request_pair {
+  char *path;
+  char *query;
+};
+
+/// 123
+// pet?minkov
+// qq=3
+
+// char *a. This is an address.
+// a[2] = 5;
+// a = malloc(3);
+// 
+struct request_pair extract_query(const char *cgipath_param) {
+  struct request_pair ret;
+  char *qq = strchr(cgipath_param, '?');
+
+  int path_len = qq - cgipath_param;
+  ret.path = malloc(path_len + 1);
+  strncpy(ret.path, cgipath_param, path_len);
+  ret.path[path_len] = 0;
+
+  int query_len = strlen(cgipath_param) - path_len - 1;
+  ret.query = malloc(query_len + 1);
+  const char* query_start_pos = cgipath_param + path_len + 1;
+  strncpy(ret.query, query_start_pos, query_len);
+  ret.query[query_len] = '\0';
+
+  return ret;
+}
+
+void run_cgi(int sockfd, const char *curdir, const char *cgipath_param) {
+  char *fullpath;
+  struct request_pair req = extract_query(cgipath_param);
+
+  printf("cgipath=[%s]\n", req.path);
+  printf("query=[%s]\n", req.query);
+
+  if (ends_with(req.path, ".py")) {
+    // TODO: Overflow possible?
+    char cmdline[MAX_QUERY];
+    sprintf(cmdline, "QUERY_STRING='%s' python ", req.query);
+    fullpath = concat3(cmdline, curdir, req.path);
+  } else {
+    char cmdline[MAX_QUERY];
+    sprintf(cmdline, "QUERY_STRING='%s'", req.query);
+    fullpath = concat(curdir, req.path);
+  }
+
+  printf("Executing: %s\n", fullpath);
 
   FILE *fpipe = popen(fullpath, "r");
 
@@ -151,6 +190,8 @@ void run_cgi(int sockfd, const char *curdir, const char *cgipath) {
     char* result = read_from_bin(fpipe);
     http_get_reply(sockfd, result);
   }
+
+  free(fullpath);
 }
 
 void output_static_file(int sockfd, const char *curdir, const char *path) {
