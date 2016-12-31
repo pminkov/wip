@@ -4,11 +4,12 @@ Based on this:
 http://pages.cs.wisc.edu/~dusseau/Classes/CS537-F07/Projects/P2/p2.html
 
 */
+#include <assert.h>
 #include <netinet/in.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <pthread.h>
 #include <sys/socket.h>
 #include <sys/types.h> 
 #include <unistd.h>
@@ -20,13 +21,14 @@ const char* GET = "GET";
 const char* CGI_BIN_PATH = "/cgi-bin/";
 
 const int MAX_PATH_LEN = 80;
+const int MAX_CWD = 100;
 
 void error(char *message) {
   perror(message);
   exit(1);
 }
 
-void writeln_to_sock(int sockfd, char *message) {
+void writeln_to_sock(int sockfd, const char *message) {
   write(sockfd, message, strlen(message));
   write(sockfd, "\r\n", 2);
 }
@@ -56,11 +58,8 @@ void http_404_reply(int sockfd) {
   free(content_length_str);
 }
 
-void http_get_reply(int sockfd, char *path) {
-  char content[100];
-  sprintf(content, "<html><body><h1>PetkoWS [%s] </h1></body></html>\r\n", path);
-
-  char length_str[100];
+void http_get_reply(int sockfd, const char *content) {
+  char length_str[10];
   sprintf(length_str, "%d", (int)strlen(content));
 
   char *content_length_str = concat("Content-Length: ", length_str);
@@ -73,9 +72,6 @@ void http_get_reply(int sockfd, char *path) {
   writeln_to_sock(sockfd, content);
 
   free(content_length_str);
-
-  //printf("Sleeping...\n");
-  //sleep(3);
 }
 
 char *read_text_from_socket(int sockfd) {
@@ -101,9 +97,75 @@ char *get_path(char *text) {
   // TODO: Overflow possible. Fix.
   char *path = malloc(MAX_PATH_LEN);
 
-  substr(text, beg_pos, end_pos - beg_pos, path);
+  int pathlen = end_pos - beg_pos;
+  substr(text, beg_pos, pathlen, path);
+  path[pathlen] = '\0';
 
   return path;
+}
+
+int is_cgi_bin_request(const char *path) {
+  if (contains(path, "/cgi-bin/")) return 1;
+  return 0;
+}
+
+char *read_from_bin(FILE *fpipe) {
+  int capacity = 10;
+  char *buf = malloc(capacity);
+  int index = 0;
+
+  int c;
+  while ((c = fgetc(fpipe)) != EOF) {
+    assert(index < capacity);
+    buf[index++] = c;
+
+    if (index == capacity) {
+      char *newbuf = malloc(capacity * 2);
+      memcpy(newbuf, buf, capacity);
+      free(buf);
+      buf = newbuf;
+      capacity *= 2;
+    }
+  }
+  // TODO(petko): Test with feof, ferror?
+
+  buf[index] = '\0';
+  printf("BUF=%s\n", buf);
+
+  return buf;
+}
+
+void run_cgi(int sockfd, const char *curdir, const char *cgipath) {
+  char* fullpath = malloc(strlen(curdir) + strlen(cgipath) + 1);
+  strcpy(fullpath, curdir);
+  strcat(fullpath, cgipath);
+
+  FILE *fpipe = popen(fullpath, "r");
+
+  if (!fpipe) {
+    perror("Problem with popen");
+    http_404_reply(sockfd);
+  } else {
+    char* result = read_from_bin(fpipe);
+    http_get_reply(sockfd, result);
+  }
+}
+
+void output_static_file(int sockfd, const char *curdir, const char *path) {
+  char* fullpath = malloc(strlen(curdir) + strlen(path) + 1);
+  strcpy(fullpath, curdir);
+  strcat(fullpath, path);
+
+  printf("Opening static file: [%s]\n", fullpath);
+
+  FILE *f = fopen(fullpath, "r");
+  if (!f) {
+    perror("Problem with fopen");
+    http_404_reply(sockfd);
+  } else {
+    char *result = read_from_bin(f);
+    http_get_reply(sockfd, result);
+  }
 }
 
 void *handle_socket_thread(void* sockfd_arg) {
@@ -115,10 +177,23 @@ void *handle_socket_thread(void* sockfd_arg) {
   char *path = NULL;
 
   if (is_get(text)) {
+    char curdir[MAX_CWD];
+
+    if (!getcwd(curdir, MAX_CWD)) {
+      error("Couldn't read curdir");
+    }
+
     path = get_path(text);
-    printf("PATH=[%s]\n", path);
-    http_get_reply(sockfd, path);
+
+    if (is_cgi_bin_request(path)) {
+      run_cgi(sockfd, curdir, path);
+    } else {
+      printf("cwd[%s]\n", curdir);
+      printf("path[%s]\n", path);
+      output_static_file(sockfd, curdir, path);
+    }
   } else {
+    // The server only supports GET.
     http_404_reply(sockfd);
   }
 
@@ -130,10 +205,17 @@ void *handle_socket_thread(void* sockfd_arg) {
   return NULL;
 }
 
-int main() {
+int create_listening_socket() {
   int sockfd = socket(AF_INET, SOCK_STREAM, 0);
   if (sockfd < 0) {
     error("ERROR opening socket");
+  }
+  int setopt = 1;
+
+  // Reuse the port. Otherwise, on restart, port 8000 is usually still occupied for a bit
+  // and we need to start at another port.
+  if (-1 == setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (char*)&setopt, sizeof(setopt))) {
+    error("ERROR setting socket options");
   }
 
   struct sockaddr_in serv_addr;
@@ -153,9 +235,14 @@ int main() {
     }
   }
 
+  if (listen(sockfd, 5) < 0) error("Couldn't listen");
   printf("Running on port: %d\n", port);
 
-  if (listen(sockfd, 5) < 0) error("Couldn't listen");
+  return sockfd;
+}
+
+int main() {
+  int sockfd = create_listening_socket();
 
   struct sockaddr_in client_addr;
   int cli_len = sizeof(client_addr);
@@ -172,6 +259,8 @@ int main() {
     *arg = newsockfd;
     queue_work_item(&pool, handle_socket_thread, arg);
   }
+  
+
 
   close(sockfd);
 
