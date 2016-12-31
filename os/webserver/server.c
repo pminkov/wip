@@ -3,6 +3,8 @@
 Based on this:
 http://pages.cs.wisc.edu/~dusseau/Classes/CS537-F07/Projects/P2/p2.html
 
+TODO: Clean up debug output.
+
 */
 #include <assert.h>
 #include <netinet/in.h>
