@@ -5,7 +5,7 @@
 DEPS = threads.h pthread_utils.h
 
 main: main.cc $(DEPS)
-	g++ ./main.cc -o ./main
+	g++ ./main.cc -o ./main -pthread
 
 clean:
 	rm -rf ./main
