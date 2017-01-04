@@ -27,16 +27,22 @@ int main() {
   srand(time(NULL));
 
   // No arguments.
-  Thread anum(a_number);
-  anum.join();
+  {
+    ThreadNoOutput t(a_number);
+    anum.join();
+  }
 
-  // One argument.
-  Thread sq(square, 5);
-  sq.join();
+  {
+    // One argument.
+    ThreadNoOutput sq(square, 5);
+    sq.join();
+  }
 
   // One argument, one return value.
-  int ret;
-  Thread sq2(square2, 5, &ret);
-  sq2.join();
-  cout << ret << endl;
+  {
+    int ret;
+    ThreadWithOutput sq2(square2, 5, &ret);
+    sq2.join();
+    cout << ret << endl;
+  }
 }
