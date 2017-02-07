@@ -5,6 +5,15 @@ var dataset = [];
 var in_settings = false;
 var settings_first_open = true;
 
+function removeFromDataset(shortcut) {
+  for (var i = 0; i < dataset.length; i++) {
+    if (dataset[i].key == shortcut) {
+      dataset.splice(i, 1);
+      console.log('Spliced');
+    }
+  }
+}
+
 function addSavedShortcut(shortcut, url) {
   var templ = $('#saved-shortcut-template');
   var instance = $(templ).clone();
@@ -15,6 +24,7 @@ function addSavedShortcut(shortcut, url) {
   $(instance).find('button').click(function() {
     chrome.storage.sync.remove(shortcut);
     $(this).closest('tr').remove();
+    removeFromDataset(shortcut);
   });
   $('#saved-shortcuts-body').prepend(instance);
 }
@@ -36,7 +46,8 @@ function openSettings(event) {
       }
     });
 
-    $('#link-add').click(function(ev) {
+    $('#add-shortcut').click(function(ev) {
+      ev.preventDefault();
       var name = $('#link-name').val();
       var url = $('#link-url').val();
 
@@ -58,7 +69,7 @@ function openSettings(event) {
 
 $(document).ready(function() {
   console.log('Document ready!');
-  $('#ta-inp').focus();
+  $('.typeahead').focus();
   $('.settings').click(openSettings);
 
   chrome.storage.sync.get(function(shortcuts) {
@@ -81,6 +92,7 @@ $(document).keyup(function(e) {
       in_settings = false;
       $('#settings-menu').hide();
       $('#search-box').show();
+      $('.typeahead').focus();
     } else {
       chrome.runtime.sendMessage('hide_popup');
     }
@@ -88,10 +100,11 @@ $(document).keyup(function(e) {
 });
 
 overlay.addEventListener('click', function() {
+  console.log('Hiding!!!');
   chrome.runtime.sendMessage('hide_popup');
 });
 
-var substringMatcher = function(strs) {
+var substringMatcher = function() {
   return function findMatches(q, cb) {
     var matches, substringRegex;
 
@@ -108,28 +121,10 @@ var substringMatcher = function(strs) {
         matches.push(entry);
       }
     });
-    /*
-    $.each(strs, function(i, str) {
-      if (substrRegex.test(str)) {
-        matches.push(str);
-      }
-    });
-    */
 
     cb(matches);
   };
 };
-
-var states = ['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California',
-  'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii',
-  'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana',
-  'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota',
-  'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
-  'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota',
-  'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island',
-  'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont',
-  'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'
-];
 
 function render_result(result) {
   return '<div>'+ result.key + '<div class="res_url">' + result.value + '</div></div>';
@@ -139,15 +134,15 @@ function display(result) {
   return result.key;
 }
 
-var box = $('#ta-inp');
+var box = $('#search-box .typeahead');
 box.typeahead({
   hint: true,
   highlight: true,
   minLength: 1
 },
 {
-  name: 'states',
-  source: substringMatcher(states),
+  name: 'shortcuts',
+  source: substringMatcher(),
   display: display,
   templates: {
     suggestion: render_result
@@ -157,6 +152,9 @@ box.typeahead({
 box.bind('typeahead:select', function(ev, shortcut) {
   var redirect_url = shortcut.value;
   console.log('Redirecting to ', redirect_url);
+  if (!redirect_url.startsWith('http')) {
+    redirect_url = 'http://' + redirect_url;
+  }
 
   chrome.runtime.sendMessage({target: redirect_url});
 });

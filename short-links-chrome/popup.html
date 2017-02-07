@@ -16,11 +16,24 @@
     <div class="overlay"></div>
 
     <div id="settings-menu">
-      <div id="add-link-holder">
-        <input id="link-name" class="settings-input" type="text" placeholder="google">
-        <input id="link-url" class="settings-input" type="text" placeholder="https://www.google.com">
-        <span id="link-add" class="link-span">Add</span>
-      </div>
+      <form id="add-link-holder" class="pure-form pure-form-aligned">
+        <fieldset>
+          <div class="pure-control-group">
+            <label for="link-name">Shortcut name</label>
+            <input id="link-name"
+                   type="text" placeholder="google">
+          </div>
+          <div class="pure-control-group">
+            <label for="link-url">URL</label>
+            <input id="link-url"
+                   type="text" placeholder="https://www.google.com">
+          </div>
+          <div class="pure-controls">
+            <button id="add-shortcut" 
+                class="pure-button pure-button-primary">Add Shortcut</button>
+          </div>
+        </fieldset>
+      </form>
 
       <table class="pure-table pure-table-horizontal" id="saved-shortcuts">
         <thead>
@@ -47,7 +60,7 @@
 
     <div id="search-box">
       <div id="the-basics">
-        <input id="ta-inp" class="typeahead" type="text" placeholder="Type shortcut">
+        <input id="typeahead" class="typeahead" type="text" placeholder="Type shortcut">
       </div>
       <div class="settings">
         <div class="bar"></div>

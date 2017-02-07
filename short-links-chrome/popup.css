@@ -41,15 +41,6 @@
   text-decoration: underline;
 } 
 
-.settings-input {
-  padding:3px;
-  font-size:150%;
-}
-
-#link-url.settings-input {
-  width:20em;
-}
-
 #saved-shortcut-template {
   display:none;
 }
@@ -58,13 +49,21 @@
   width: 100%;
 }
 
-.red-button {
-  background: rgb(202, 60, 60);
+
+.blue-button, .red-button {
   color: white;
   border-radius: 4px;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
 
+.red-button {
+  background: rgb(202, 60, 60);
+}
+
 #add-link-holder {
   margin-bottom:1em;
+}
+
+#add-link-holder input {
+  width:70%;
 }
