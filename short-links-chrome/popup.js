@@ -12,6 +12,10 @@ function addSavedShortcut(shortcut, url) {
   $(instance).find('.shortcut-name').text(shortcut);
   $(instance).find('.shortcut-url').text(url);
   $(instance).show();
+  $(instance).find('button').click(function() {
+    chrome.storage.sync.remove(shortcut);
+    $(this).closest('tr').remove();
+  });
   $('#saved-shortcuts-body').prepend(instance);
 }
 
@@ -20,22 +24,16 @@ function openSettings(event) {
   $('#settings-menu').show();
   in_settings = true;
 
-  chrome.storage.sync.get(function(stored) {
-    console.log('Stored:', stored);
-    for (key in stored) {
-      console.log(key, ' -> ', stored[key]);
-
-      addSavedShortcut(key, stored[key]);
-    }
-  });
-
   if (settings_first_open) {
     settings_first_open = false;
 
-    $('#clean-storage').click(function(event) {
-      chrome.storage.sync.clear(function () {
-        console.log("Clear done", arguments);
-      });
+    chrome.storage.sync.get(function(stored) {
+      console.log('Stored:', stored);
+      for (key in stored) {
+        console.log(key, ' -> ', stored[key]);
+
+        addSavedShortcut(key, stored[key]);
+      }
     });
 
     $('#link-add').click(function(ev) {

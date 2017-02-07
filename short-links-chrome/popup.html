@@ -6,17 +6,15 @@
     <!--<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet"> -->
 
     <!-- Custom styles for this template -->
-    <link href="popup.css" rel="stylesheet">
     <link href="typeahead.css" rel="stylesheet">
     <link href="ext/pure-min.css" rel="stylesheet">
+    <link href="popup.css" rel="stylesheet">
   </head>
 
   <body>
     <div class="overlay"></div>
 
     <div id="settings-menu">
-      Hi, I'm the edit menu.
-      <span id="clean-storage" class="link-span">Clean Storage</span>
       <div id="add-link-holder">
         <input id="link-name" class="settings-input" type="text" placeholder="google">
         <input id="link-url" class="settings-input" type="text" placeholder="https://www.google.com">
@@ -28,6 +26,7 @@
           <tr>
             <th>Shortcut</th>
             <th>URL</th>
+            <th>Delete</th>
           </tr>
         </thead>
         <tbody id="saved-shortcuts-body">
@@ -35,6 +34,9 @@
           <tr id="saved-shortcut-template">
             <td class="shortcut-name"></td>
             <td class="shortcut-url"></td>
+            <td class="shortcut-delete">
+              <button class="red-button pure-button pure-button-primary">Delete</button>
+            </td>
           </tr>
         </tbody>
       </table>
