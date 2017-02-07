@@ -57,6 +57,7 @@ function openSettings(event) {
 }
 
 $(document).ready(function() {
+  console.log('Document ready!');
   $('#ta-inp').focus();
   $('.settings').click(openSettings);
 
