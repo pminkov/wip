@@ -89,6 +89,14 @@ def binomial_ci(n, prob):
   """
   return 1.96 * math.sqrt(prob * (1 - prob) / float(n))
 
+def binomial_ci_print(trials, positive):
+  prob = float(positive) / trials
+
+  ci = binomial_ci(trials, prob)
+
+  print "We did %d trials" % trials
+  print "%.2f%% of these were positive" % (100. * prob)
+  print "We're 95%% sure that the probability is between %f and %f" % (100. * (prob - ci), 100*(prob + ci))
 
 def in_ci(x1, ci, x2):
   return x1 - ci <= x2 and x2 <= x1 + ci
