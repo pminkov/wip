@@ -71,6 +71,14 @@
         background-color:#eee;
       }
 
+      #floating-panel #title {
+        font-size:18px;
+        margin-bottom:1em;
+        background:#eee;
+        border-radius: 4px;
+        padding:4px;
+      }
+
       #floating-panel input {
         padding:4px;
         margin: 4px;
@@ -100,10 +108,15 @@
   </head>
   <body>
     <div id="floating-panel">
+      <div id=title>
+        Commute Time Calculator
+      </div>
       <div>
+        A:
         <input id="address-from" value="Union Square, San Francisco, CA">
       </div>
       <div>
+        B:
         <input id="address-to" value="Jack London Square, Oakland, CA">
       </div>
       <button id="go">Go!</button>
@@ -113,8 +126,8 @@
         <table id="times">
           <tr>
             <td>Hour</td>
-            <td>Monday</td>
-            <td>Saturday</td>
+            <td>A to B</td>
+            <td>B to A</td>
           </tr>
         </table>
       </div>

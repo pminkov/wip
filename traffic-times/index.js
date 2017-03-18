@@ -47,12 +47,18 @@ function initApp(map) {
 }
 
 function initTable() {
-  for (var t = 0; t < 24; t++) {
+  for (var t = 4; t < 24; t++) {
+    var tt;
+    if (t == 0) tt = '12am';
+    else if (t == 12) tt = '12pm';
+    else if (t <= 11) tt = t + 'am';
+    else tt = t - 12 + 'pm';
+
     $('#times').append(
       '<tr id="time-' + t + '">' + 
-        '<td class="used_time">' + t + '</td>' +
-        '<td class="time_slot slot_week"></td>' + 
-        '<td class="time_slot slot_weekend"></td>' + 
+        '<td class="used_time">' + tt + '</td>' +
+        '<td class="time_slot slot_ab"></td>' + 
+        '<td class="time_slot slot_ba"></td>' + 
       '</tr>');
   }
 }
@@ -105,47 +111,56 @@ function runAnalysis(directionsService, directionsDisplay) {
 
   var batch = new ThrottledBatch();
 
-  var modes = ['Week', 'Weekend'];
+  var modes = ['ab', 'ba'];
 
   var is_displayed = false;
 
-  hour_lim = 6;
+  hour_lim = 24;
 
   for (var hour = 0; hour < hour_lim; hour++) {
-    $('#time-' + hour + ' .slot_week').text('');
-    $('#time-' + hour + ' .slot_weekend').text('');
+    $('#time-' + hour + ' .slot_ab').text('');
+    $('#time-' + hour + ' .slot_ba').text('');
   }
 
   for (var mode_i = 0; mode_i < modes.length; mode_i++) {
     mode = modes[mode_i];
 
-    for (var hour = 0; hour < hour_lim; hour++) {
+    var hour_from;
+    var hour_to;
+    if (mode == 'ab') {
+      hour_from = 6;
+      hour_to = 12;
+    }
+
+    if (mode == 'ba') {
+      hour_from = 15;
+      hour_to = 22;
+    }
+
+    for (var hour = hour_from; hour <= hour_to; hour++) {
       var d = new Date();
-      var adjust = 0;
-      if (mode == 'Week') {
-        // Wed. -(3 - 1) = -2.
-        adjust = -(d.getDay() - 1);
-      } else {
-        // Wed. (6-3) = 3;
-        adjust = 6 - d.getDay()
-      }
+      var adjust = -(d.getDay() - 1);
       d.setDate(d.getDate() + 7 + adjust);
 
-      if (mode == 'Week') {
-        console.assert(d.getDay() == 1);
-      } else {
-        console.assert(d.getDay() == 6);
-      }
-
+      console.assert(d.getDay() == 1);
 
       d.setHours(hour);
 
+      var mystart, myend;
+      if (mode == 'ab') {
+        mystart = start;
+        myend = end;
+      } else {
+        mystart = end;
+        myend = start;
+      }
       var params = {
-        origin: start,
-        destination: end,
+        origin: mystart,
+        destination: myend,
         travelMode: 'DRIVING',
         drivingOptions: {
-          departureTime: d
+          departureTime: d,
+          trafficModel: 'pessimistic'
         }
       };
 
@@ -162,9 +177,9 @@ function runAnalysis(directionsService, directionsDisplay) {
               var leg = route.legs[0];
             }
 
-            var selector = ' .slot_week';
-            if (myParams.mode == 'Weekend') {
-              selector = ' .slot_weekend';
+            var selector = ' .slot_ab';
+            if (myParams.mode == 'ba') {
+              selector = ' .slot_ba';
             }
 
             $('#time-' + myParams.hour + selector).text(leg.duration_in_traffic.text);
