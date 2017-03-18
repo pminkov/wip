@@ -1,26 +1,11 @@
 function initMap() {
-  var map;
-  /*
-  if (navigator && navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(function (position) {
-      map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 7,
-        center: {lat: position.coords.latitude, lng: position.coords.longiture}
-      });
-
-      initApp(map);
-    });
-
-  } else 
-  */
-  {
-    map = new google.maps.Map(document.getElementById('map'), {
+  var map = new google.maps.Map(document.getElementById('map'), {
       zoom: 11,
-      center: { lat: 37.779236, lng: -122.449621 }
+      center: { lat: 37.779236, lng: -122.449621 },
+      mapTypeControl: false
     });
 
-    initApp(map);
-  }
+  initApp(map);
 }
 
 function initApp(map) {
@@ -28,7 +13,6 @@ function initApp(map) {
   var directionsService = new google.maps.DirectionsService;
 
   directionsDisplay.setMap(map);
-  //directionsDisplay.setPanel(document.getElementById('right-panel'));
 
   var control = document.getElementById('floating-panel');
   control.style.display = 'block';
@@ -36,14 +20,17 @@ function initApp(map) {
 
   initTable();
 
-  var onGoClick = function() {
-    runAnalysis(directionsService, directionsDisplay);
+  var startShow = function() {
+    showDrivingTimes(directionsService, directionsDisplay);
   }
 
-  //calculateAndDisplayRoute(directionsService, directionsDisplay, false);
-  
-  document.getElementById('go').addEventListener('click', onGoClick);
-  //document.getElementById('end').addEventListener('change', onChangeHandler);
+  var handleEnter = function(e) {
+    if (e.keyCode == 13) {
+      startShow();
+    }
+  }
+  $('input').keyup(handleEnter);
+  $('#go').click(startShow);
 }
 
 function initTable() {
@@ -89,6 +76,8 @@ ThrottledBatch.prototype.executeOne = function(index) {
         setTimeout(function() {
           me.executeOne(index + 1);
         }, me.wait_time);
+      } else if (status == 'ZERO_RESULTS' || status == 'NOT_FOUND') {
+        $('#noroute').show();
       } else {
         console.log('Oops, waiting..');
         setTimeout(function() {
@@ -105,7 +94,8 @@ ThrottledBatch.prototype.execute = function() {
   this.executeOne(0);
 }
 
-function runAnalysis(directionsService, directionsDisplay) {
+function showDrivingTimes(directionsService, directionsDisplay) {
+  $('#noroute').hide();
   var start = $('#address-from').val();
   var end = $('#address-to').val();
 
@@ -199,45 +189,3 @@ function runAnalysis(directionsService, directionsDisplay) {
 
   batch.execute();
 }
-
-function calculateAndDisplayRoute(directionsService, directionsDisplay, getTime) {
-  var start = "1858 Tacome Ave, Berkeley, CA";
-  //var end = "1650 Broadway, Oakland, CA";
-  var end = "2 Townsend St, San Francisco, CA";
-
-
-  var params = {
-    origin: start,
-    destination: end,
-    travelMode: 'DRIVING'
-  }
-
-  if (getTime) {
-    var hour = document.getElementById('arrive-by').value;
-
-    var d = new Date();
-    d.setDate(d.getDate() + 7);
-    d.setHours(hour);
-
-    console.log(d);
-
-    var drivingOptions = {
-      'departureTime': d
-    };
-
-    params['drivingOptions'] = drivingOptions;
-  }
-
-  console.log(params);
-
-
-  directionsService.route(params, function(response, status) {
-    if (status === 'OK') {
-      console.log(response);
-      directionsDisplay.setDirections(response);
-    } else {
-      window.alert('Directions request failed due to ' + status);
-    }
-  });
-}
-
