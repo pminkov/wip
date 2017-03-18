@@ -1,10 +1,32 @@
 function initMap() {
+  var map;
+  /*
+  if (navigator && navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function (position) {
+      map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 7,
+        center: {lat: position.coords.latitude, lng: position.coords.longiture}
+      });
+
+      initApp(map);
+    });
+
+  } else 
+  */
+  {
+    map = new google.maps.Map(document.getElementById('map'), {
+      zoom: 11,
+      center: { lat: 37.779236, lng: -122.449621 }
+    });
+
+    initApp(map);
+  }
+}
+
+function initApp(map) {
   var directionsDisplay = new google.maps.DirectionsRenderer;
   var directionsService = new google.maps.DirectionsService;
-  var map = new google.maps.Map(document.getElementById('map'), {
-    zoom: 7,
-    center: {lat: 41.85, lng: -87.65}
-  });
+
   directionsDisplay.setMap(map);
   //directionsDisplay.setPanel(document.getElementById('right-panel'));
 
@@ -14,15 +36,11 @@ function initMap() {
 
   initTable();
 
-  var onChangeHandler = function() {
-    calculateAndDisplayRoute(directionsService, directionsDisplay, true);
-  };
-
   var onGoClick = function() {
-    runAnalysis(directionsService);
+    runAnalysis(directionsService, directionsDisplay);
   }
 
-  calculateAndDisplayRoute(directionsService, directionsDisplay, false);
+  //calculateAndDisplayRoute(directionsService, directionsDisplay, false);
   
   document.getElementById('go').addEventListener('click', onGoClick);
   //document.getElementById('end').addEventListener('change', onChangeHandler);
@@ -81,19 +99,27 @@ ThrottledBatch.prototype.execute = function() {
   this.executeOne(0);
 }
 
-function runAnalysis(directionsService) {
-  var start = "1858 Tacome Ave, Berkeley, CA";
-  //var end = "1650 Broadway, Oakland, CA";
-  var end = "2 Townsend St, San Francisco, CA";
+function runAnalysis(directionsService, directionsDisplay) {
+  var start = $('#address-from').val();
+  var end = $('#address-to').val();
 
   var batch = new ThrottledBatch();
 
   var modes = ['Week', 'Weekend'];
 
+  var is_displayed = false;
+
+  hour_lim = 6;
+
+  for (var hour = 0; hour < hour_lim; hour++) {
+    $('#time-' + hour + ' .slot_week').text('');
+    $('#time-' + hour + ' .slot_weekend').text('');
+  }
+
   for (var mode_i = 0; mode_i < modes.length; mode_i++) {
     mode = modes[mode_i];
 
-    for (var hour = 0; hour <= 23; hour++) {
+    for (var hour = 0; hour < hour_lim; hour++) {
       var d = new Date();
       var adjust = 0;
       if (mode == 'Week') {
@@ -130,13 +156,10 @@ function runAnalysis(directionsService) {
 
       batch.addRequest(function(params, myParams, done_callback) {
         directionsService.route(params, function(myParams, response, status) {
-          //console.log(status);
           if (status === 'OK') {
-            //console.log(response);
             if (response.routes.length > 0) {
               var route = response.routes[0];
               var leg = route.legs[0];
-              //console.log(hour, leg.duration_in_traffic.text);
             }
 
             var selector = ' .slot_week';
@@ -145,6 +168,11 @@ function runAnalysis(directionsService) {
             }
 
             $('#time-' + myParams.hour + selector).text(leg.duration_in_traffic.text);
+
+            if (!is_displayed) {
+              is_displayed = true;
+              directionsDisplay.setDirections(response);
+            }
           }
 
           done_callback(status);
