@@ -1,3 +1,18 @@
+"""
+Index Tree
+==========
+
+An index tree of size N allows the following operations:
+
+Update(index, value) - Add "value" to its index element. O(logN)
+Query(to) - Return the sum of all elements from 0 to to. O(logN)
+
+You can trivially update it to support range queries.
+
+The idea is that the first node contains the sum of all elements.
+Its left child contains the sum of the first half, its right child the sum
+of the second half. And so on, recursively.
+"""
 import random
 
 class IndexTree:
