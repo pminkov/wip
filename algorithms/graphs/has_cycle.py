@@ -75,3 +75,9 @@ class Graph:
 g = Graph()
 g.add_edges([(1,2), (1,3), (3,2), (4,3), (2,4), (4,5)])
 g.check_for_cycle()
+
+"""OUTPUT:
+
+$ python ./has_cycle.py 
+CYCLE: 2  ->  3  ->  4  ->  2
+"""
