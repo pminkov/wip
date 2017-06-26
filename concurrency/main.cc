@@ -25,24 +25,4 @@ void get_six(int *a) {
 
 int main() {
   srand(time(NULL));
-
-  // No arguments.
-  {
-    ThreadNoOutput t(a_number);
-    anum.join();
-  }
-
-  {
-    // One argument.
-    ThreadNoOutput sq(square, 5);
-    sq.join();
-  }
-
-  // One argument, one return value.
-  {
-    int ret;
-    ThreadWithOutput sq2(square2, 5, &ret);
-    sq2.join();
-    cout << ret << endl;
-  }
 }
