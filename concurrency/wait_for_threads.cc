@@ -1,4 +1,7 @@
 #include "pthread_utils.h"
+#include <errno.h>
+#include <semaphore.h>
+#include <unistd.h>
 #include <cstdlib>
 #include <vector>
 #include <map>
@@ -6,95 +9,54 @@
 #include <iostream>
 using namespace std;
 
-class RwLock {
-  public:
-    int readers;
-    pthread_mutex_t write_lock, read_lock;
+const int NUM_THREADS = 10;
 
-    RwLock() {
-      readers = 0;
-      Pthread_mutex_init(&write_lock);
-      Pthread_mutex_init(&read_lock);
-    }
+pthread_mutex_t output_mutex;
+sem_t * semaphore;
 
-    void begin_write() {
-      Pthread_mutex_lock(&write_lock);
-    }
+void *some_work(void *args) {
+  int t = rand() % 5;
+  pthread_t thread_id = pthread_self();
 
-    void end_write() {
-      Pthread_mutex_unlock(&write_lock);
-    }
+  Pthread_mutex_lock(&output_mutex);
+  cout << "I'm thread " << thread_id << ". I'll sleep for " << t << " seconds.\n";
+  Pthread_mutex_unlock(&output_mutex);
 
-    void begin_read() {
-      Pthread_mutex_lock(&read_lock);
-      if (readers == 0) {
-        Pthread_mutex_lock(&write_lock);
-      }
-      readers++;
-      Pthread_mutex_unlock(&read_lock);
-    }
+  sleep(t);
 
-    void end_read() {
-      Pthread_mutex_lock(&read_lock);
-      readers--;
-      if (readers == 0) {
-        Pthread_mutex_unlock(&write_lock);
-      }
-      Pthread_mutex_unlock(&read_lock);
-    }
-};
+  Pthread_mutex_lock(&output_mutex);
+  cout << "I'm thread " << thread_id << ". I'm done.\n";
+  Pthread_mutex_unlock(&output_mutex);
 
+  sem_post(semaphore);
+  return NULL;
+}
 
-template <class K, class V>
-class MtMap {
-  private:
-    map<K, V> kv;
-    RwLock rw_lock;
-
-  public:
-    MtMap() {
-    }
-
-    void insert(const K &key, const V &value) {
-      rw_lock.begin_write();
-      kv[key] = value;
-      rw_lock.end_write();
-    }
-
-    bool get(const K &key, V *value) {
-      rw_lock.begin_read();
-      map<string, string>::iterator it = kv.find(key);
-
-      bool ret_val = false;
-      if (it != kv.end()) {
-        *value = it->second;
-        ret_val = true;
-      }
-      rw_lock.end_read();
-      return ret_val;
-    }
-};
-
+const char *SEM_NAME="/wait_for_threads";
 
 int main() {
-  MtMap<string, string> map;
+  srand(time(0));
+  Pthread_mutex_init(&output_mutex);
 
-  map.insert("petko", "minkov");
-  map.insert("john", "smith");
+  // A named semaphore. Not sure how to create an unnamed one.
+  semaphore = sem_open(SEM_NAME, O_CREAT | O_EXCL, 0644, 0);
 
-  vector<string> checks;
-  checks.push_back("petko");
-  checks.push_back("john");
-  checks.push_back("hello");
-
-  for (int i = 0; i < checks.size(); i++) {
-    string s;
-    bool res = map.get(checks[i], &s);
-
-    if (res) {
-      cout << "Found (" << checks[i] << ", " << s << ")" << endl;
-    } else {
-      cout << "Not found (" << checks[i] << ")" << endl;
+  if (semaphore == SEM_FAILED) {
+    if (errno == EEXIST) {
+      sem_unlink(SEM_NAME);
     }
+    perror("Semaphore");
+    return -1;
   }
+
+  pthread_t threads[NUM_THREADS];
+  for (int i = 0; i < NUM_THREADS; i++) {
+    Pthread_create(&threads[i], NULL, some_work, NULL);
+  }
+
+  for (int i = 0; i < NUM_THREADS; i++) {
+    sem_wait(semaphore);
+  }
+
+  sem_unlink(SEM_NAME);
 }
