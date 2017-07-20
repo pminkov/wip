@@ -1,0 +1,8 @@
+Create:
+  kubectl create -f pod.yaml
+
+Remove:
+  kubectl delete pod talepod
+
+Restart:
+  kubectl replace -f ./pod.yaml  --force

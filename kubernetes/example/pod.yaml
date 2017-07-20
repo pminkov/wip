@@ -1,0 +1,10 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: talepod
+spec:
+  containers:
+    - name: pulltest
+      image: gcr.io/mooc-hub/pulltest:v0 
+      imagePullPolicy: Always
