@@ -1,0 +1,19 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: talepod
+  labels:
+    release-rev: {{ .Release.Revision | quote }}
+spec:
+  replicas: 1 
+  template:
+    metadata:
+      labels:
+        app: justpod
+        release-rev: {{ .Release.Revision | quote }}
+    spec:
+      containers:
+        - name: pulltest
+          image: gcr.io/mooc-hub/pulltest:{{.Values.dockerTag}}
+          imagePullPolicy: Always

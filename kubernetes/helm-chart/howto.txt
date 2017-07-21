@@ -1,0 +1,5 @@
+cd kubetale
+
+helm install . --name=kubetale --debug 
+helm upgrade kubetale . --debug
+
