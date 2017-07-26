@@ -1,0 +1,10 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: shared-disk
+spec:
+  accessModes: 
+    - {{ .Values.pvc.policy }}
+  resources:
+    requests:
+      storage: 2Gi

@@ -1,0 +1,23 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: shared-disk-editor
+spec:
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: pulltest
+          image: gcr.io/mooc-hub/pulltest:v0
+          imagePullPolicy: Always
+          volumeMounts:
+            - mountPath: /srv/shared-disk
+              name: shared-disk-dir
+      volumes:
+      - name: shared-disk-dir
+        persistentVolumeClaim:
+          claimName: shared-disk

@@ -1,0 +1,5 @@
+dockerTag: v0
+replicaCount: 2
+
+pvc:
+  policy: ReadOnlyMany

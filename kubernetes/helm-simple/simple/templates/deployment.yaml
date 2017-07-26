@@ -1,0 +1,19 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: simpledep
+  labels:
+    app: linux
+spec:
+  replicas: 1 
+  template:
+    metadata:
+      labels:
+        app: linux
+    spec:
+      containers:
+        - name: thebox
+          image: ubuntu
+          command: ["tail"]
+          args: ["-f", "/dev/null"]
