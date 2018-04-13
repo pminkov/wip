@@ -1,4 +1,7 @@
 import _ from 'lodash';
+import './styles/app.css';
+
+console.log('Greetingz');
 
 function component() {
   var element = document.createElement('div');
